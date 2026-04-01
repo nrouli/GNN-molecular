@@ -1,0 +1,7 @@
+source,n_heavy_atoms,count,mae,unit
+QM9_test,all,,0.093994,eV
+Alchemy_all,all,170543,637408.897337,eV
+Alchemy_9,9,35727,1397867.601241,eV
+Alchemy_10,10,95984,225171.129574,eV
+Alchemy_11,11,30424,1204152.559133,eV
+Alchemy_12,12,8408,61376.961466,eV

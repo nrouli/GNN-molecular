@@ -1,0 +1,13 @@
+# Core ML framework
+torch>=2.0.0
+numpy>=1.24.0
+
+# PyTorch Geometric and its dependencies
+torch_geometric>=2.4.0
+
+# Data & visualization
+pandas>=2.0.0
+matplotlib>=3.7.0
+
+# Utilities
+tqdm>=4.65.0

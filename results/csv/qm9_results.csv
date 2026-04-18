@@ -1,0 +1,5 @@
+model,target,target_name,test_mae,unit,best_val_mae,hid_dim,n_layers,epochs_trained,seed
+egnn,4,gap,0.087777,eV,0.085259,96,4,150,42
+egnn,4,gap,0.084844,eV,0.082632,96,4,150,42
+gat,4,gap,0.122652,eV,0.119676,128,4,150,42
+schnet,4,gap,0.084540,eV,0.083005,96,4,150,42

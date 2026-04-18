@@ -5,7 +5,6 @@ import torch.nn as nn
 class E_GCL(nn.Module):
     """
     E(n) Equivariant Convolutional Layer
-    re
     """
 
     def __init__(self, input_nf, output_nf, hidden_nf, edges_in_d=0, act_fn=nn.SiLU(), residual=True, attention=False, normalize=False, coords_agg='mean', tanh=False):

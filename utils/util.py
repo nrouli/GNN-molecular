@@ -65,14 +65,16 @@ def count_parameters(model):
 
 # ── Dataset loading ─────────────────────────────────────────────────────────────
 
-def get_qm9_data(target, batch_size=256, root='data/QM9', seed=SEED, train_size=100000, val_size=10000):
+def get_qm9_data(target, batch_size=256, root='data/QM9', seed=SEED, train_size=100000, val_size=10000, test_size=10000):
     """Load QM9 and return train/val/test loaders with normalization stats.
 
-    Standard split: 110k / 10k / rest (~11k).
+    Standard split: 100k / 10k / rest (~28k).
     Returns loaders and (mean, std) of the target over the training set,
     which the caller can use for normalization if desired.
     """
-    dataset = QM9(root=root)
+    transform = RadiusGraph(r=5.0, max_num_neighbors=32)
+
+    dataset = QM9(root=root, transform=transform)
     target_name, target_unit = QM9_TARGETS[target]
     print(f'QM9 loaded: {len(dataset)} molecules')
     print(f'Target {target}: {target_name} [{target_unit}]')
@@ -83,7 +85,7 @@ def get_qm9_data(target, batch_size=256, root='data/QM9', seed=SEED, train_size=
 
     train_dataset = dataset[:train_size]
     val_dataset   = dataset[train_size:train_size + val_size]
-    test_dataset  = dataset[train_size + val_size:]
+    test_dataset  = dataset[train_size + val_size:train_size + val_size+ test_size]
 
     # compute normalization stats on training set
     train_targets = torch.stack([d.y[:, target] for d in train_dataset])
@@ -217,11 +219,21 @@ def build_egnn(in_dim, hid_dim=128, out_dim=1, n_layers=4):
     from models.EGNN import EGNN
     egnn = EGNN(
         in_node_nf=in_dim, hidden_nf=hid_dim, n_layers=n_layers,
-        out_node_nf=out_dim, in_edge_nf=4   # QM9 has 4-dim bond features
+        out_node_nf=out_dim, in_edge_nf=0
     )
     model = EGNN_QM9_Wrapper(egnn)
     model.to(get_device())
     print(f'EGNN: {count_parameters(model):,} parameters')
+    return model
+
+
+def build_cgenn(in_dim, hid_dim=64, out_dim=1, n_layers=4):
+    """Build an EGNN model wrapped for PyG Data input (QM9)."""
+    from models.CGENN import CGGNN
+    cgenn = CGGNN(hidden_features=hid_dim, out_features=out_dim, n_layers=n_layers)
+    model = cgenn
+    model.to(get_device())
+    print(f'CGENN: {count_parameters(model):,} parameters')
     return model
 
 def build_gat(in_dim=14, hid_dim=64, out_dim=1, n_layers=4, n_heads=4):
@@ -231,6 +243,13 @@ def build_gat(in_dim=14, hid_dim=64, out_dim=1, n_layers=4, n_heads=4):
     print(f'GAT: {count_parameters(model):,} parameters')
     return model
 
+
+def build_ga_gat(in_dim=14, hid_dim=32, out_dim=1, n_layers=4, n_heads=4):
+    from models.GAGAT import GA_GAT
+    model = GA_GAT(hidden_dim=hid_dim, out_dim=out_dim, num_layers=n_layers, num_heads=n_heads, num_rbf=20, cutoff=10)
+    model.to(get_device())
+    print(f'GAT: {count_parameters(model):,} parameters')
+    return model
 
 # ── Checkpointing ───────────────────────────────────────────────────────────────
 

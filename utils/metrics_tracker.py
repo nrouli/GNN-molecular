@@ -46,9 +46,10 @@ class MetricsTracker:
     def plot(self, ax=None):
         plt.rcParams['lines.linewidth'] = 0.8
         plt.rcParams['font.size'] = 9
-        plt.rcParams['text.usetex'] = True
+        plt.rcParams['text.usetex'] = False
+        plt.rcParams['mathtext.fontset'] = 'cm'
         plt.rcParams['font.family'] = 'serif'
-        plt.rcParams['font.serif'] = ['Computer Modern Roman']
+        
         
         if ax is None:
             fig, ax = plt.subplots()
@@ -56,11 +57,12 @@ class MetricsTracker:
             fig = ax.get_figure()
         
         epochs = self.metrics['epoch']
-        ax.plot(epochs, self.metrics['train_mae'], label=f'{self.model_name} train')
-        ax.plot(epochs, self.metrics['val_mae'], label=f'{self.model_name} val')
+        ax.plot(epochs, self.metrics['train_mae'], 'b--', label=f'{self.model_name} train')
+        ax.plot(epochs, self.metrics['val_mae'], 'm-', label=f'{self.model_name} val')
         
         ax.set_xlabel('Epoch')
         ax.set_ylabel('MAE')
+        ax.set_yscale('log')
         ax.legend()
         ax.grid(True, linestyle='--', alpha=0.4)
         

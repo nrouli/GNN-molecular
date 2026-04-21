@@ -36,7 +36,7 @@ from utils.benchmark import benchmark_inference
 from utils.metrics_tracker import MetricsTracker
 
 
-# ── Checkpoint helpers ───────────────────────────────────────────────
+# Checkpoint helpers
 
 def get_checkpoint_dir(model_name, target_name):
     """pretrained_models/checkpoints/<model>_<target>/"""
@@ -70,7 +70,7 @@ def parse_args():
     # model
     parser.add_argument('--model',    default='egnn', choices=['egnn', 'schnet', 'gat', 'gagat', 'cgenn'])
     parser.add_argument('--in_dim',   type=int, default=11)
-    parser.add_argument('--hid_dim',  type=int, default=64)
+    parser.add_argument('--hid_dim',  type=int, default=96)
     parser.add_argument('--n_layers', type=int, default=4)
 
     # gat
@@ -78,23 +78,23 @@ def parse_args():
 
     # schnet
     parser.add_argument('--hidden_channels',  type=int,   default=128)
-    parser.add_argument('--num_filters',      type=int,   default=128)
+    parser.add_argument('--num_filters',      type=int,   default=64)
     parser.add_argument('--num_interactions', type=int,   default=6)
     parser.add_argument('--num_gaussians',    type=int,   default=25)
     parser.add_argument('--cutoff',           type=float, default=10.0)
 
     # data
     parser.add_argument('--target',     type=int, default=4)
-    parser.add_argument('--batch_size', type=int, default=256)
+    parser.add_argument('--batch_size', type=int, default=100)
     parser.add_argument('--train_size', type=int, default=100000)
     parser.add_argument('--val_size',   type=int, default=10000)
     parser.add_argument('--test_size',  type=int, default=20000)
     # training
-    parser.add_argument('--epochs',       type=int,   default=200)
-    parser.add_argument('--lr',           type=float, default=1e-3)
+    parser.add_argument('--epochs',       type=int,   default=150)
+    parser.add_argument('--lr',           type=float, default=5e-4)
     parser.add_argument('--weight_decay', type=float, default=1e-2)
-    parser.add_argument('--patience',     type=int,   default=20)
-    parser.add_argument('--lr_patience',  type=int,   default=5)
+    parser.add_argument('--patience',     type=int,   default=50)
+    parser.add_argument('--lr_patience',  type=int,   default=8)
     parser.add_argument('--lr_factor',    type=float, default=0.5)
     parser.add_argument('--step',         type=int,   default=1)
     parser.add_argument('--seed',         type=int,   default=SEED)
@@ -313,18 +313,18 @@ def main():
 
     model.to(device)
 
-    # profiling and benchmarking only on fresh runs
-    if not args.resume:
-        from torch.profiler import profile, ProfilerActivity
+    # # profiling and benchmarking only on fresh runs
+    # if not args.resume:
+    #     from torch.profiler import profile, ProfilerActivity
 
-        batch = next(iter(train_loader)).to('cuda')
-        model.eval()
-        with torch.no_grad(), profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA]) as prof:
-            _ = model(batch)
-        print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=20))
+    #     batch = next(iter(train_loader)).to('cuda')
+    #     model.eval()
+    #     with torch.no_grad(), profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA]) as prof:
+    #         _ = model(batch)
+    #     print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=20))
 
-        benchmark_batch = next(iter(train_loader))
-        benchmark_inference(model=model, input_data=benchmark_batch, device='cuda')
+    #     benchmark_batch = next(iter(train_loader))
+    #     benchmark_inference(model=model, input_data=benchmark_batch, device='cuda')
 
     # train
     metrics, best_val = train_model(args, model, train_loader, val_loader, device)

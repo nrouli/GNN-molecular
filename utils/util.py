@@ -117,60 +117,76 @@ RMD17_FILE_MAP = {
 }
 
 def get_md17_data(molecule='aspirin', batch_size=64,
-                  train_size=1000, val_size=1000, root='data/MD17/rmd17',
+                  split_idx=1,
+                  root='data/MD17/rmd17',
                   cutoff=5.0, seed=SEED):
-    """Load revised MD17 directly from .npz files.
-
-    Default split: 1000 train / 1000 val / rest test.
-    Applies a radius graph and one-hot encoding of atomic numbers.
+    """Load revised MD17 using official splits.
+    
+    Uses rMD17 official temporally-decorrelated splits (1-5).
+    Training: 1000 configurations from split. Validation: held out from train.
+    Test: all remaining configurations from the full trajectory.
     """
     filename = RMD17_FILE_MAP.get(molecule)
     if filename is None:
-        raise ValueError(f'Unknown molecule: {molecule}. '
-                         f'Available: {list(RMD17_FILE_MAP.keys())}')
+        raise ValueError(f'Unknown molecule: {molecule}')
 
     path = os.path.join(root, filename)
     raw = np.load(path)
 
-    coords    = torch.tensor(raw['coords'], dtype=torch.float32)       # (N_conf, N_atoms, 3)
-    energies  = torch.tensor(raw['energies'], dtype=torch.float32)     # (N_conf,)
-    forces    = torch.tensor(raw['forces'], dtype=torch.float32)       # (N_conf, N_atoms, 3)
-    z         = torch.tensor(raw['nuclear_charges'], dtype=torch.long) # (N_atoms,)
+    coords   = torch.tensor(raw['coords'], dtype=torch.float32)
+    energies = torch.tensor(raw['energies'], dtype=torch.float32)
+    forces   = torch.tensor(raw['forces'], dtype=torch.float32)
+    z        = torch.tensor(raw['nuclear_charges'], dtype=torch.long)
 
     n_conf = coords.shape[0]
     max_z  = int(z.max().item()) + 1
-    x_onehot = nn.functional.one_hot(z, num_classes=max_z).float()     # (N_atoms, max_z)
+    x_onehot = nn.functional.one_hot(z, num_classes=max_z).float()
+
+    # Load official split indices
+    splits_dir = os.path.join(root, 'splits')
+    train_idx = np.loadtxt(
+        os.path.join(splits_dir, f'index_train_{split_idx:02d}.csv'),
+        dtype=int,
+    )
+    test_idx = np.loadtxt(
+        os.path.join(splits_dir, f'index_test_{split_idx:02d}.csv'),
+        dtype=int,
+    )
+
+    # Carve validation out of training set (last N indices of train)
+    val_size = 100  # standard choice; some papers use 50
+    val_idx = train_idx[-val_size:]
+    train_idx = train_idx[:-val_size]
 
     print(f'rMD17 loaded: {molecule} ({n_conf} conformations, {z.shape[0]} atoms)')
+    print(f'Using official split {split_idx}')
+    print(f'Split: {len(train_idx)} train | {len(val_idx)} val | {len(test_idx)} test')
 
-    # build a Data object per conformation
-    processed = []
+    # Build Data objects for the indices we actually use
     rg = RadiusGraph(r=cutoff, loop=False)
-    for i in range(n_conf):
-        d = Data(
-            x=x_onehot,
-            pos=coords[i],
-            energy=energies[i].unsqueeze(0),
-            force=forces[i],
-            z=z,
-        )
-        d = rg(d)
-        processed.append(d)
+    
+    def build(idx_array):
+        out = []
+        for i in idx_array:
+            d = Data(
+                x=x_onehot,
+                pos=coords[i],
+                energy=energies[i].unsqueeze(0),
+                force=forces[i],
+                z=z,
+            )
+            d = rg(d)
+            out.append(d)
+        return out
+    
+    train_dataset = build(train_idx)
+    val_dataset   = build(val_idx)
+    test_dataset  = build(test_idx)
 
-    # shuffle and split
-    torch.manual_seed(seed)
-    perm = torch.randperm(n_conf)
-    processed = [processed[i] for i in perm]
+    train_e = torch.stack([d.energy for d in train_dataset])
+    mean = train_e.mean().item()
+    std  = train_e.std().item()
 
-    train_dataset = processed[:train_size]
-    val_dataset   = processed[train_size:train_size + val_size]
-    test_dataset  = processed[train_size + val_size:]
-
-    train_energies = torch.stack([d.energy for d in train_dataset])
-    mean = train_energies.mean().item()
-    std  = train_energies.std().item()
-
-    print(f'Split: {len(train_dataset)} train | {len(val_dataset)} val | {len(test_dataset)} test')
     print(f'Energy stats (train): mean={mean:.6f}, std={std:.6f}')
     print(f'Node features: {x_onehot.shape[1]}-dim one-hot  |  Cutoff: {cutoff} A')
 
@@ -304,3 +320,5 @@ def evaluate_mae_energy(model, loader, mean, std, device):
             total_samples += data.num_graphs
 
     return total_loss / total_samples
+
+

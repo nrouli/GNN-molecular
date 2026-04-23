@@ -94,7 +94,7 @@ def parse_args():
     parser.add_argument('--lr',           type=float, default=5e-4)
     parser.add_argument('--weight_decay', type=float, default=1e-2)
     parser.add_argument('--patience',     type=int,   default=50)
-    parser.add_argument('--lr_patience',  type=int,   default=8)
+    parser.add_argument('--lr_patience',  type=int,   default=10)
     parser.add_argument('--lr_factor',    type=float, default=0.5)
     parser.add_argument('--step',         type=int,   default=1)
     parser.add_argument('--seed',         type=int,   default=SEED)

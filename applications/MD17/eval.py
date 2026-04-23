@@ -39,8 +39,6 @@ def parse_args():
     parser.add_argument('--model',      default='egnn', choices=['egnn'])
     parser.add_argument('--molecule',   type=str, default='revised aspirin')
     parser.add_argument('--batch_size', type=int, default=64)
-    parser.add_argument('--train_size', type=int, default=1000, help='Must match training split')
-    parser.add_argument('--val_size',   type=int, default=1000, help='Must match training split')
     parser.add_argument('--cutoff',     type=float, default=5.0)
     parser.add_argument('--trials',     type=int, default=1)
     parser.add_argument('--seed',       type=int, default=SEED)

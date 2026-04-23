@@ -18,7 +18,7 @@ class GaussianRBF(nn.Module):
 class GAT(nn.Module):
     def __init__(
         self,
-        node_input_dim=11 + 3,
+        node_input_dim=11,
         hidden_dim=128,
         out_dim=1,
         num_layers=4,
@@ -71,8 +71,7 @@ class GAT(nn.Module):
     def forward(self, data):
         x, pos, edge_index, batch = data.x, data.pos, data.edge_index, data.batch
 
-        h = torch.cat([x, pos], dim=-1)
-        h = self.node_embed(h)
+        h = self.node_embed(x)
 
         row, col = edge_index
         dist = (pos[row] - pos[col]).norm(dim=-1)

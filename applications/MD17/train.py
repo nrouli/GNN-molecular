@@ -2,8 +2,8 @@
 Training script for energy + force prediction on (revised) MD17.
 
 Usage:
-    python datasets/MD17/train.py --model schnet --molecule "revised aspirin"
-    python datasets/MD17/train.py --model egnn --molecule "revised ethanol" --epochs 1000 --hid_dim 128
+    python datasets/MD17/train.py --model schnet --molecule "aspirin"
+    python datasets/MD17/train.py --model egnn --molecule "ethanol" --epochs 750 --hid_dim 128
     python datasets/MD17/train.py --model schnet --train_all_molecules
     python datasets/MD17/train.py --model schnet --scheduler cosine_wr --T_0 50 --T_mult 2
 
@@ -60,16 +60,16 @@ def parse_args():
                         help='Radius graph cutoff in Angstrom')
 
     # loss weights
-    parser.add_argument('--energy_coeff', type=float, default=1,
+    parser.add_argument('--energy_coeff', type=float, default=0.05,
                         help='Energy loss weight (rMD17 convention: 0.05)')
-    parser.add_argument('--force_coeff',  type=float, default=100,
+    parser.add_argument('--force_coeff',  type=float, default=0.95,
                         help='Force loss weight (rMD17 convention: 0.95)')
 
     # training
     parser.add_argument('--epochs',       type=int,   default=1000)
     parser.add_argument('--lr',           type=float, default=5e-4)
     parser.add_argument('--weight_decay', type=float, default=1e-8)
-    parser.add_argument('--patience',     type=int,   default=150,
+    parser.add_argument('--patience',     type=int,   default=1000,
                         help='Early stopping patience (on val force MAE)')
     parser.add_argument('--step',         type=int,   default=1,
                         help='Log every N epochs')
@@ -142,7 +142,6 @@ def compute_energy_and_forces(model, data):
 # This keeps energy and force on comparable scales.
 # ---------------------------------------------------------------------------
 def compute_md17_stats(train_loader, device):
-    """For Convention 1: just return the energy mean. Forces need no shift."""
     energies = []
     num_atoms_ref = None
     for data in train_loader:
@@ -151,7 +150,7 @@ def compute_md17_stats(train_loader, device):
         energies.append(data.energy.view(-1).float())
     energies = torch.cat(energies)
     energy_mean = energies.mean().to(device)
-    # Return a dummy force_rms=1.0 so downstream denormalize becomes a no-op on scale
+  
     force_rms = torch.tensor(1.0, device=device)
     return energy_mean, force_rms, num_atoms_ref
 

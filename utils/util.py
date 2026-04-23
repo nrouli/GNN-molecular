@@ -246,7 +246,7 @@ def build_egnn(in_dim, hid_dim=128, out_dim=1, n_layers=4):
 def build_cgenn(in_dim, hid_dim=64, out_dim=1, n_layers=4):
     """Build an EGNN model wrapped for PyG Data input (QM9)."""
     from models.CGENN import CGGNN
-    cgenn = CGGNN(hidden_features=hid_dim, out_features=out_dim, n_layers=n_layers)
+    cgenn = CGGNN(in_features=in_dim+1, hidden_features=hid_dim, out_features=out_dim, n_layers=n_layers)
     model = cgenn
     model.to(get_device())
     print(f'CGENN: {count_parameters(model):,} parameters')

@@ -3,3 +3,4 @@ __pycache__/
 *.pyc
 pretrained_models/checkpoints/
 models/gacore_modules/
+results/

@@ -1,6 +1,6 @@
 data/
 __pycache__/
 *.pyc
-pretrained_models/checkpoints/
+pretrained_models/
 models/gacore_modules/
 results/

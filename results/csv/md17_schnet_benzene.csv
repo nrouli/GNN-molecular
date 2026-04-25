@@ -1,2 +1,0 @@
-model,molecule,test_energy_mae,test_force_mae,best_val_force_mae,hid_dim,n_layers,scheduler,seed
-schnet,benzene,0.051219,0.234986,0.253219,96,6,cosine_wr,42

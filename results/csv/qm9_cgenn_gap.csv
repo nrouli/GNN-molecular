@@ -1,2 +1,0 @@
-model,target,target_name,test_mae,unit,best_val_mae,hid_dim,n_layers,epochs_trained,seed
-cgenn,4,gap,0.237687,eV,0.240123,16,1,20,42

@@ -3,11 +3,11 @@ import torch.nn as nn
 from torch_geometric.nn import radius_graph, global_mean_pool, global_add_pool
 
 from torch_geometric.utils import scatter
-from models.algebra.cliffordalgebra import CliffordAlgebra
-from models.ga_modules.gp import SteerableGeometricProductLayer
-from models.ga_modules.linear import MVLinear
-from models.ga_modules.mvlayernorm import MVLayerNorm
-from models.ga_modules.mvsilu import MVSiLU
+from models.f_algebra.cliffordalgebra import CliffordAlgebra
+from models.gacore_modules.gp import SteerableGeometricProductLayer
+from models.gacore_modules.linear import MVLinear
+from models.gacore_modules.mvlayernorm import MVLayerNorm
+from models.gacore_modules.mvsilu import MVSiLU
 
 
 
@@ -171,7 +171,7 @@ class CGGNN(nn.Module):
         residual=True,
     ):
         super().__init__()
-        self.algebra = CliffordAlgebra((1.0, 1.0, 1.0))
+        self.algebra = CliffordAlgebra((1.0, 1.0, 1.0, 1.0))
         self.hidden_features = hidden_features
         self.n_layers = n_layers
 

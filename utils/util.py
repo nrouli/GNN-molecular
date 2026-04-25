@@ -237,7 +237,6 @@ def build_egnn(in_dim, hid_dim=128, out_dim=1, n_layers=4):
         out_node_nf=out_dim, in_edge_nf=0
     )
     model = EGNN_QM9_Wrapper(egnn)
-    model.to(get_device())
     print(f'EGNN: {count_parameters(model):,} parameters')
     return model
 
@@ -247,14 +246,12 @@ def build_cgenn(in_dim, hid_dim=64, out_dim=1, n_layers=4):
     from models.CGENN import CGGNN
     cgenn = CGGNN(in_features=in_dim+1, hidden_features=hid_dim, out_features=out_dim, n_layers=n_layers)
     model = cgenn
-    model.to(get_device())
     print(f'CGENN: {count_parameters(model):,} parameters')
     return model
 
 def build_gat(in_dim=14, hid_dim=64, out_dim=1, n_layers=4, n_heads=4):
     from models.GAT import GAT
     model = GAT(node_input_dim=in_dim, hidden_dim=hid_dim, out_dim=out_dim, num_layers=n_layers, num_heads=n_heads, num_rbf=20, cutoff=10)
-    model.to(get_device())
     print(f'GAT: {count_parameters(model):,} parameters')
     return model
 
@@ -262,7 +259,6 @@ def build_gat(in_dim=14, hid_dim=64, out_dim=1, n_layers=4, n_heads=4):
 def build_ga_gat(in_dim=14, hid_dim=32, out_dim=1, n_layers=4, n_heads=4):
     from models.GAGAT import GA_GAT
     model = GA_GAT(hidden_dim=hid_dim, out_dim=out_dim, num_layers=n_layers, num_heads=n_heads, num_rbf=20, cutoff=10)
-    model.to(get_device())
     print(f'GAT: {count_parameters(model):,} parameters')
     return model
 

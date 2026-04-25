@@ -96,6 +96,9 @@ def parse_args():
     parser.add_argument('--train_all_molecules', action='store_true',
                         help='Train on all revised MD17 molecules sequentially')
 
+    # mixed precision 
+    parser.add_argument('--mixed_precision', action='store_true', help='Enable or disable mixed precision arithmetic (if enabled bfloat16 will be used)')
+    
     return parser.parse_args()
 
 
@@ -163,6 +166,7 @@ def train_one_epoch(
     energy_coeff, force_coeff, grad_clip,
     scheduler=None, scheduler_is_batchwise=False, epoch=0,
 ):
+    args = parse_args()
     model.train()
     loss_acc = 0.0
     e_mae_acc = 0.0
@@ -175,8 +179,7 @@ def train_one_epoch(
         # CRITICAL: enable grad on positions so we can get forces by autograd
         data.pos.requires_grad_(True)
 
-        optimizer.zero_grad()
-
+        optimizer.zero_grad()    
         energy_hat, forces = compute_energy_and_forces(model, data)
 
         # denormalize energy back to physical units for loss against raw target
@@ -189,6 +192,7 @@ def train_one_epoch(
         loss_f = criterion(forces, force_true)
         loss = energy_coeff * loss_e + force_coeff * loss_f
 
+        
         loss.backward()
         if grad_clip and grad_clip > 0:
             torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
@@ -439,7 +443,6 @@ def run_single_molecule(args, device):
             raise ValueError(f'Unknown model: {args.model}')
 
     model = model.to(device)
-
     metrics, best_val_f, best_state, (e_mean, f_rms, n_atoms) = train_model(
         args, model, train_loader, val_loader, device, args.molecule,
     )
@@ -513,5 +516,44 @@ def main():
         print(f'Results saved: {csv_path}')
 
 
+import numpy as np
+
+def autocorr_fft(x, max_lag=None):
+    """Normalized autocorrelation of a 1D time series via FFT.
+    x: (T,) array. Returns c(0..max_lag-1) with c(0) = 1."""
+    x = np.asarray(x, dtype=np.float64) - np.mean(x)
+    T = len(x)
+    if max_lag is None:
+        max_lag = T // 4
+    n = 2 ** int(np.ceil(np.log2(2 * T)))
+    f = np.fft.fft(x, n=n)
+    acf = np.fft.ifft(f * np.conj(f)).real[:T]
+    acf /= np.arange(T, 0, -1)            # unbiased: divide by (T - tau)
+    return acf[:max_lag] / acf[0]
+
+def autocorr_batch(X, max_lag=None):
+    """Same thing but for (T, K) matrix — runs K parallel series at once."""
+    X = np.asarray(X, dtype=np.float64)
+    X = X - X.mean(axis=0, keepdims=True)
+    T, K = X.shape
+    if max_lag is None:
+        max_lag = T // 4
+    n = 2 ** int(np.ceil(np.log2(2 * T)))
+    F = np.fft.fft(X, n=n, axis=0)
+    acf = np.fft.ifft(F * np.conj(F), axis=0).real[:T]
+    acf /= np.arange(T, 0, -1)[:, None]
+    acf /= acf[0:1, :]
+    return acf[:max_lag]
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+data = np.load('data/MD17/rmd17/rmd17_aspirin.npz')
+
+
+
 if __name__ == '__main__':
     main()
+    
+    

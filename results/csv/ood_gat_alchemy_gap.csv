@@ -1,7 +1,0 @@
-source,n_heavy_atoms,count,mae,unit
-QM9_test,all,,0.098095,eV
-Alchemy_all,all,170543,1.619410,eV
-Alchemy_9,9,35727,1.642089,eV
-Alchemy_10,10,95984,1.575037,eV
-Alchemy_11,11,30424,1.744553,eV
-Alchemy_12,12,8408,1.576777,eV

@@ -1,7 +1,0 @@
-source,n_heavy_atoms,count,mae,unit,correction
-QM9_test,all,,101.145912,eV,n/a
-Alchemy_all,all,183051,19.297620,eV,"linear (w=0.398499, b=124.610275)"
-Alchemy_9,9,35727,17.106381,eV,"linear (w=0.398499, b=124.610275)"
-Alchemy_10,10,108492,18.327561,eV,"linear (w=0.398499, b=124.610275)"
-Alchemy_11,11,30424,21.893157,eV,"linear (w=0.398499, b=124.610275)"
-Alchemy_12,12,8408,31.733816,eV,"linear (w=0.398499, b=124.610275)"

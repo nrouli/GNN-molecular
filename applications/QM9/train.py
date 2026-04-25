@@ -105,6 +105,9 @@ def parse_args():
     parser.add_argument('--resume',       action='store_true',
                         help='Resume training from the latest checkpoint')
 
+
+    # mixed precision
+    parser.add_argument('--mixed_precision', action='store_true', help='Enable or disable mixed precision arithmetic (if enabled bfloat16 will be used)')
     return parser.parse_args()
 
 
@@ -114,13 +117,14 @@ def train_one_epoch(model, loader, optimizer, scaler, target_idx, device):
     model.train()
     total_loss = 0.0
     total_samples = 0
+    args = parse_args()
 
     train_bar = tqdm(loader, desc='[Train]', leave=False)
     for data in train_bar:
         data = data.to(device)
         optimizer.zero_grad()
 
-        with torch.autocast('cuda', dtype=torch.float16):
+        with torch.autocast('cuda', dtype=torch.bfloat16, enabled=args.mixed_precision):
             pred = model(data)
             out = pred.squeeze()
             loss = nn.functional.l1_loss(out, data.y[:, target_idx])
@@ -310,21 +314,10 @@ def main():
         case _:
             model = build_egnn(in_dim=args.in_dim, hid_dim=args.hid_dim,
                                out_dim=1, n_layers=args.n_layers)
+            
 
     model.to(device)
 
-    # # profiling and benchmarking only on fresh runs
-    # if not args.resume:
-    #     from torch.profiler import profile, ProfilerActivity
-
-    #     batch = next(iter(train_loader)).to('cuda')
-    #     model.eval()
-    #     with torch.no_grad(), profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA]) as prof:
-    #         _ = model(batch)
-    #     print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=20))
-
-    #     benchmark_batch = next(iter(train_loader))
-    #     benchmark_inference(model=model, input_data=benchmark_batch, device='cuda')
 
     # train
     metrics, best_val = train_model(args, model, train_loader, val_loader, device)

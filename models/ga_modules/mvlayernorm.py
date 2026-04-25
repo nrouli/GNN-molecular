@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from models.ga_modules.utils import unsqueeze_like
+from .utils import unsqueeze_like
 
 EPS = 1e-6
 

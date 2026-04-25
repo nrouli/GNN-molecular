@@ -153,8 +153,7 @@ def get_md17_data(molecule='aspirin', batch_size=64,
         dtype=int,
     )
 
-    # Carve validation out of training set (last N indices of train)
-    val_size = 100  # standard choice; some papers use 50
+    val_size = 100
     val_idx = train_idx[-val_size:]
     train_idx = train_idx[:-val_size]
 

@@ -136,11 +136,6 @@ def compute_energy_and_forces(model, data):
     return energy, forces
 
 
-# ---------------------------------------------------------------------------
-# Normalization stats for MD17: per-atom energy mean + force RMS.
-# Both reapplied at prediction time:  E = E_hat * F_rms + E_atom_mean * N_atoms
-# This keeps energy and force on comparable scales.
-# ---------------------------------------------------------------------------
 def compute_md17_stats(train_loader, device):
     energies = []
     num_atoms_ref = None

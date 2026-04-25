@@ -4,10 +4,10 @@ from torch_geometric.nn import radius_graph, global_mean_pool, global_add_pool
 
 from torch_geometric.utils import scatter
 from models.f_algebra.cliffordalgebra import CliffordAlgebra
-from models.gacore_modules.gp import SteerableGeometricProductLayer
-from models.gacore_modules.linear import MVLinear
-from models.gacore_modules.mvlayernorm import MVLayerNorm
-from models.gacore_modules.mvsilu import MVSiLU
+from models.ga_modules.gp import SteerableGeometricProductLayer
+from models.ga_modules.linear import MVLinear
+from models.ga_modules.mvlayernorm import MVLayerNorm
+from models.ga_modules.mvsilu import MVSiLU
 
 
 
